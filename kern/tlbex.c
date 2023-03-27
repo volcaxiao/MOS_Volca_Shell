@@ -40,7 +40,9 @@ Pte _do_tlb_refill(u_long va, u_int asid) {
 	 *  **While** 'page_lookup' returns 'NULL', indicating that the 'pte' could not be found,
 	 *  allocate a new page using 'passive_alloc' until 'page_lookup' succeeds.
 	 */
-
+	while (page_lookup(cur_pgdir, va, &pte) == NULL) {
+		passive_alloc(va, cur_pgdir, asid);
+	}
 	/* Exercise 2.9: Your code here. */
 
 	return *pte;
