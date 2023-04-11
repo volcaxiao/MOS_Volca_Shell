@@ -187,7 +187,7 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	if (!((*pgdir_entryp) & PTE_V)) {
 		if (create) {
 			try(page_alloc(&pp));
-			*pgdir_entryp = page2pa(pp) & 0xfffff000 | PTE_V | PTE_D;
+			*pgdir_entryp = (page2pa(pp) & 0xfffff000) | PTE_V | PTE_D;
 			pp->pp_ref++;
 		} else {
 			*ppte = 0;
