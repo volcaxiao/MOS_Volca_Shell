@@ -18,7 +18,7 @@ void schedule(int yield) {
 	static int count = 0; // remaining time slices of current env
 	struct Env *e = curenv;
 
-	/* We always decrease the 'count' by 1.
+	/* We always decrease the 'count'  by 1.
 	 *
 	 * If 'yield' is set, or 'count' has been decreased to 0, or 'e' (previous 'curenv') is
 	 * 'NULL', or 'e' is not runnable, then we pick up a new env from 'env_sched_list' (list of
@@ -35,5 +35,17 @@ void schedule(int yield) {
 	 *   'TAILQ_FIRST', 'TAILQ_REMOVE', 'TAILQ_INSERT_TAIL'
 	 */
 	/* Exercise 3.12: Your code here. */
-
+	if (yield || count == 0 || e == NULL || e->env_status != ENV_RUNNABLE) {
+		if (e && e->env_status == ENV_RUNNABLE) {
+			TAILQ_REMOVE(&env_sched_list, e, env_sched_link);
+			TAILQ_INSERT_TAIL(&env_sched_list, e, env_sched_link);
+		}
+		if (TAILQ_EMPTY(&env_sched_list)) {
+			panic("There is no runnable env!\n");
+		}
+		e = TAILQ_FIRST(&env_sched_list);
+		count = e->env_pri;
+	}
+	count--;
+	env_run(e);
 }
