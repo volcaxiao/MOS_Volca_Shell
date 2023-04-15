@@ -240,7 +240,7 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	}
 	/* Step 2: Call a 'env_setup_vm' to initialize the user address space for this new Env. */
 	/* Exercise 3.4: Your code here. (2/4) */
-	env_setup_vm(e);
+	try(env_setup_vm(e));
 	/* Step 3: Initialize these fields for the new Env with appropriate values:
 	 *   'env_user_tlb_mod_entry' (lab4), 'env_runs' (lab6), 'env_id' (lab3), 'env_asid' (lab3),
 	 *   'env_parent_id' (lab3)
@@ -251,9 +251,12 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	 */
 	e->env_user_tlb_mod_entry = 0; // for lab4
 	e->env_runs = 0;	       // for lab6
-				       /* Exercise 3.4: Your code here. (3/4) */
+	/* Exercise 3.4: Your code here. (3/4) */
 	e->env_id = mkenvid(e);
-	try(asid_alloc(&e->env_asid));
+	r = asid_alloc(&e->env_asid);
+	if (r != 0) {
+		return r;
+	}
 	e->env_parent_id = parent_id;
 	/* Step 4: Initialize the sp and 'cp0_status' in 'e->env_tf'. */
 	// Timer interrupt (STATUS_IM4) will be enabled.
@@ -294,7 +297,7 @@ static int load_icode_mapper(void *data, u_long va, size_t offset, u_int perm, c
 	// Hint: You may want to use 'memcpy'.
 	if (src != NULL) {
 		/* Exercise 3.5: Your code here. (2/2) */
-		memcpy(p + offset, src, len);
+		memcpy(page2kva(p) + offset, src, len);
 	}
 
 	/* Step 3: Insert 'p' into 'env->env_pgdir' at 'va' with 'perm'. */
