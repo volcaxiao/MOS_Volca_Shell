@@ -419,7 +419,7 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 		if (p == NULL) {
 			return -E_INVAL;
 		}
-		e->env_ipc_dstva = page2kva(p);
+		try(page_insert(e->env_pgdir, e->env_asid, p, e->env_ipc_dstva, perm));
 	}
 	return 0;
 }
