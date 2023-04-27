@@ -127,14 +127,14 @@ int fork(void) {
 	/* Step 3: Map all mapped pages below 'USTACKTOP' into the child's address space. */
 	// Hint: You should use 'duppage'.
 	/* Exercise 4.15: Your code here. (1/2) */
-	for (i = 0; i < PDX(USTACKTOP); i++) {
-		//先遍历每一个页目录项
+	for (i = 0; i < PDX(ROUND(USTACKTOP, PDMAP)); i++) {
+		//先遍历每一个页目录项，这里要考虑Ustacktop地址的4mb对齐
 		if (vpd[i] & PTE_V) {
 			u_int j = 0;
 			for (j = 0; j < 1024; j++) {
-				//再遍历下面的页表项
-				u_int vpn = (i<<10) | j;
-				if (vpt[vpn] & PTE_V) {
+				//再遍历下面的页表项，不要将对齐进去的地址也弄进去了
+				u_int vpn = (i << 10) | j;
+				if (vpn < VPN(USTACKTOP) && (vpt[vpn] & PTE_V)) {
 					duppage(child, vpn);
 				}
 			}

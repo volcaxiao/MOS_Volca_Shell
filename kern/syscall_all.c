@@ -285,7 +285,7 @@ int sys_set_env_status(u_int envid, u_int status) {
 	/* Exercise 4.14: Your code here. (3/3) */
 	if (env->env_status != status) {
 		if (status == ENV_RUNNABLE) {
-			printk("set the env %d RUNNABLE\n", envid);
+			//printk("set the env %d RUNNABLE\n", envid);
 			TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
 		} else {
 			TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
