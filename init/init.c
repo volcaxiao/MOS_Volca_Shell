@@ -27,7 +27,7 @@ void mips_init() {
 	//ENV_CREATE_PRIORITY(user_bare_loop, 2);
 
 	// lab4:
-	ENV_CREATE(user_tltest);
+	// ENV_CREATE(user_tltest);
 	// ENV_CREATE(user_fktest);
 	// ENV_CREATE(user_pingpong);
 
@@ -36,7 +36,7 @@ void mips_init() {
 
 	// lab5:
 	// ENV_CREATE(user_fstest);
-	// ENV_CREATE(fs_serv);  // This must be the second env!
+	ENV_CREATE(fs_serv);  // This must be the second env!
 	// ENV_CREATE(user_devtst);
 
 	// lab3:

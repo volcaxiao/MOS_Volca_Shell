@@ -432,6 +432,27 @@ int sys_cgetc(void) {
 	return ch;
 }
 
+
+int is_illegal_dev_pa(u_int pa, u_int len) {
+	//console
+	if (0x10000000 <= pa && pa + len -1 < 0x10000020) {
+		//printk("%x in console\n", pa);
+		return 0;
+	}
+	// IDE disk
+	if (0x13000000 <= pa && pa + len -1 < 0x13004200) {
+		//printk("%x in IDE\n", pa);
+		return 0;
+	}
+	//rtc
+	if (0x15000000 <= pa && pa + len -1 < 0x15000200) {
+		//printk("%x in rtc\n", pa);
+		return 0;
+	}
+	//printk("%x illegal!!!!!!\n", pa);
+	return 1;
+}
+
 /* Overview:
  *  This function is used to write data at 'va' with length 'len' to a device physical address
  *  'pa'. Remember to check the validity of 'va' and 'pa' (see Hint below);
@@ -460,7 +481,13 @@ int sys_cgetc(void) {
  */
 int sys_write_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (1/2) */
-
+	if (is_illegal_va_range(va, len) != 0) {
+		return - E_INVAL;
+	}
+	if (is_illegal_dev_pa(pa, len) != 0) {
+		return - E_INVAL;
+	}
+	memcpy((void*)(pa+KSEG1), (void*)va, len);
 	return 0;
 }
 
@@ -477,7 +504,13 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
  */
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
-
+	if (is_illegal_va_range(va, len) != 0) {
+		return - E_INVAL;
+	}
+	if (is_illegal_dev_pa(pa, len) != 0) {
+		return - E_INVAL;
+	}
+	memcpy((void*)va, (void*)(pa+KSEG1), len);
 	return 0;
 }
 
