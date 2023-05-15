@@ -192,7 +192,6 @@ int read(int fdnum, void *buf, u_int n) {
 	/* Exercise 5.10: Your code here. (4/4) */
 	if (r > 0) {
 		fd->fd_offset += r;
-		((char*)buf)[r] = '\0';
 	}
 
 	return r;
