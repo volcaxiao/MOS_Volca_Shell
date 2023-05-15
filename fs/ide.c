@@ -73,7 +73,7 @@ void ide_write(u_int diskno, u_int secno, void *src, u_int nsecs) {
 		temp = begin + off;
 		panic_on(syscall_write_dev(&temp, (DEV_DISK_ADDRESS + DEV_DISK_OFFSET), 4));
 		panic_on(syscall_write_dev((src + off), (DEV_DISK_ADDRESS + DEV_DISK_BUFFER), 512));
-		uint32_t writeOp = DEV_DISK_OPERATION_READ;
+		uint32_t writeOp = DEV_DISK_OPERATION_WRITE;
 		panic_on(syscall_write_dev(&writeOp, (DEV_DISK_ADDRESS + DEV_DISK_START_OPERATION), 4));
 		uint32_t re;
 		panic_on(syscall_read_dev(&re, (DEV_DISK_ADDRESS + DEV_DISK_STATUS), 4));
