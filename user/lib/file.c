@@ -49,14 +49,16 @@ int open(const char *path, int mode) {
 	u_int size, fileid;
 	/* Exercise 5.9: Your code here. (3/5) */
 	va = (char *)fd2data(fd);
-	ffd = (struct Filefd *)va;
+	ffd = (struct Filefd *)fd;
 	fileid = ffd->f_fileid;
 	size = ffd->f_file.f_size;
 	// Step 4: Alloc pages and map the file content using 'fsipc_map'.
 	for (int i = 0; i < size; i += BY2PG) {
 		/* Exercise 5.9: Your code here. (4/5) */
-		syscall_mem_alloc(0, va+i, PTE_D);
-		fsipc_map(fileid, i, va);
+		r = fsipc_map(fileid, i, va+i);
+		if (r < 0) {
+			return r;
+		}
 	}
 
 	// Step 5: Return the number of file descriptor using 'fd2num'.

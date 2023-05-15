@@ -13,6 +13,9 @@ int block_is_free(u_int);
 // Hint: Use 'DISKMAP' and 'BY2BLK' to calculate the address.
 void *diskaddr(u_int blockno) {
 	/* Exercise 5.6: Your code here. */
+	if (blockno >= DISKMAX / BY2BLK) {
+		user_panic("In diskaddr: non-existent block %08x\n", blockno);
+	}
 	return (void*)(DISKMAP + BY2BLK * blockno);
 }
 
@@ -138,13 +141,13 @@ int map_block(u_int blockno) {
 	// Step 1: If the block is already mapped in cache, return 0.
 	// Hint: Use 'block_is_mapped'.
 	/* Exercise 5.7: Your code here. (1/5) */
-	if (block_is_mapped(blockno) != NULL) {
+	if (block_is_mapped(blockno)) {
 		return 0;
 	}
 	// Step 2: Alloc a page in permission 'PTE_D' via syscall.
 	// Hint: Use 'diskaddr' for the virtual address.
 	/* Exercise 5.7: Your code here. (2/5) */
-	syscall_mem_alloc(0, diskaddr(blockno), PTE_D);
+	return syscall_mem_alloc(0, diskaddr(blockno), PTE_V|PTE_D);
 }
 
 // Overview:
@@ -153,7 +156,10 @@ void unmap_block(u_int blockno) {
 	// Step 1: Get the mapped address of the cache page of this block using 'block_is_mapped'.
 	void *va;
 	/* Exercise 5.7: Your code here. (3/5) */
-	va = block_is_mapped(blockno);
+	if (block_is_mapped(blockno)) {
+		return;
+	}
+
 	// Step 2: If this block is used (not free) and dirty in cache, write it back to the disk
 	// first.
 	// Hint: Use 'block_is_free', 'block_is_dirty' to check, and 'write_block' to sync.
@@ -163,7 +169,10 @@ void unmap_block(u_int blockno) {
 	}
 	// Step 3: Unmap the virtual address via syscall.
 	/* Exercise 5.7: Your code here. (5/5) */
-	syscall_mem_unmap(0, va);
+	va = diskaddr(blockno);
+	if (syscall_mem_unmap(0, va) < 0) {
+		user_panic("In unmap_block: unmap error!");
+	}
 	user_assert(!block_is_mapped(blockno));
 }
 
@@ -190,7 +199,7 @@ void free_block(u_int blockno) {
 	// You can refer to the function 'block_is_free' above.
 	// Step 1: If 'blockno' is invalid (0 or >= the number of blocks in 'super'), return.
 	/* Exercise 5.4: Your code here. (1/2) */
-	if (blockno == 0 || blockno >= super->s_nblocks) {
+	if (blockno == 0 || (blockno >= super->s_nblocks && super != 0)) {
 		return;
 	}
 	// Step 2: Set the flag bit of 'blockno' in 'bitmap'.
@@ -323,6 +332,7 @@ void check_write_block(void) {
 
 	// validate the data read from the disk.
 	read_block(1, 0, 0);
+	//printf("%s\n", (char *)diskaddr(1));
 	user_assert(strcmp((char *)diskaddr(1), "OOPS!\n") == 0);
 
 	// restore the super block.
@@ -502,7 +512,10 @@ int dir_lookup(struct File *dir, char *name, struct File **file) {
 		// Read the i'th block of 'dir' and get its address in 'blk' using 'file_get_block'.
 		void *blk;
 		/* Exercise 5.8: Your code here. (2/3) */
-		file_get_block(dir, i, &blk);
+		r = file_get_block(dir, i, &blk);
+		if (r < 0) {
+			return r;
+		}
 		struct File *files = (struct File *)blk;
 
 		// Find the target among all 'File's in this block.
