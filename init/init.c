@@ -23,7 +23,7 @@ void mips_init() {
 	env_init();
 
 	// lab3:
-	//ENV_CREATE_PRIORITY(user_bare_loop, 1);
+	ENV_CREATE_PRIORITY(user_bare_loop, 1);
 	//ENV_CREATE_PRIORITY(user_bare_loop, 2);
 
 	// lab4:
