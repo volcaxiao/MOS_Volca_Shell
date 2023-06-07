@@ -86,7 +86,6 @@ int parsecmd(char **argv, int *rightpipe) {
 		case 0:
 			return argc;
 		case 'w':
-			// printf("%s\n", t);
 			if (argc >= MAXARGS) {
 				debugf("too many arguments\n");
 				exit();
@@ -99,7 +98,6 @@ int parsecmd(char **argv, int *rightpipe) {
 				exit();
 			}
 			// Open 't' for reading, dup it onto fd 0, and then close the original fd.
-			/* Exercise 6.5: Your code here. (1/3) */
 			fd = open(t, O_RDONLY);
 			dup(fd, 0);
 			close(fd);
@@ -110,7 +108,6 @@ int parsecmd(char **argv, int *rightpipe) {
 				exit();
 			}
 			// Open 't' for writing, dup it onto fd 1, and then close the original fd.
-			/* Exercise 6.5: Your code here. (2/3) */
 			fd = open(t, O_WRONLY);
 			dup(fd, 1);
 			close(fd);
@@ -132,10 +129,8 @@ int parsecmd(char **argv, int *rightpipe) {
 			 * - and 'return argc', to execute the left of the pipeline.
 			 */
 			int p[2];
-			/* Exercise 6.5: Your code here. (3/3) */
 			pipe(p);
-			*rightpipe = fork();
-			if (*rightpipe == 0) {
+			if ((*rightpipe = fork()) == 0) {
 				dup(p[0], 0);
 				close(p[0]);
 				close(p[1]);
@@ -146,8 +141,6 @@ int parsecmd(char **argv, int *rightpipe) {
 				close(p[1]);
 				return argc;
 			}
-			user_panic("| not implemented");
-
 			break;
 		case ';':;
 			int left = fork();
@@ -172,19 +165,6 @@ int parsecmd(char **argv, int *rightpipe) {
 	return argc;
 }
 
-void add_b(char *dst, char *src) {
-	int i;
-	for (i = 0; i < MAXNAMELEN && src[i] != 0; i++) {
-		dst[i] = src[i];
-	}
-	if (i+2 >= MAXNAMELEN) {
-		debugf("the file %s.b name is too long\n", dst);
-	}
-	dst[i] = '.';
-	dst[i+1] = 'b';
-	dst[i+2] = 0;
-}
-
 void runcmd(char *s) {
 	gettoken(s, 0);
 
@@ -195,28 +175,17 @@ void runcmd(char *s) {
 		return;
 	}
 	argv[argc] = 0;
-	// printf("%s\n", argv[0]);
-	int child = spawn(argv[0], argv);
-	// printf("%d\n", child);
-	close_all();
-	if (child >= 0) {
-		// printf("waiting\n");
-		wait(child);
-	} else {
-		// char add_b_name[MAXNAMELEN];
-		// add_b(add_b_name, argv[0]);
-		// // printf("%s\n", add_b_name);
-		// int child = spawn(add_b_name, argv);
-		// close_all();
-		// if (child >= 0) {
-		// 	wait(child);
-		// } else {
-			debugf("spawn %s: %d\n", argv[0], child);
-		// }
-	}
 	if (rightpipe) {
 		wait(rightpipe);
 	}
+	int child = spawn(argv[0], argv);
+	close_all();
+	if (child >= 0) {
+		wait(child);
+	} else {
+		debugf("spawn %s: %d\n", argv[0], child);
+	}
+	
 	exit();
 }
 
@@ -267,7 +236,6 @@ void printSpace(int num) {
 }
 
 void updateCons(int cursor) {
-	// printf("\nbefore %d | after %d | total %d\n", beforeLen, afterLen, inputLen);
 	int i;
 	printBack(cursor);
 	printSpace(inputLen+1);
@@ -380,14 +348,11 @@ void readline(char *buf, u_int n) {
 			}
 			exit();
 		}
-		//printf("\b \b");
-		//printf(" %d == 7:  %d\n", (char)inc, (char)inc == (char)7);
+
 		if (inc == 27) {
 			dir = readDir();
-			//printf("%x\n", inc);
 		}
 		
-		// printf("\n%d\n", inc);
 		if (inc == '\r' || inc == '\n') {
 			loadBuf(buf);
 			return;

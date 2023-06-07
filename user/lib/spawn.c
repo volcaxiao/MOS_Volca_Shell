@@ -107,7 +107,19 @@ int spawn(char *prog, char **argv) {
 	int fd;
 	// printf("open %s\n", prog);
 	if ((fd = open(prog, O_RDONLY)) < 0) {
-		return fd;
+		int bfd, len;
+		char bprog[MAXNAMELEN];
+		strcpy(bprog, prog);
+		len = strlen(bprog);
+		bprog[len] = '.';
+		bprog[len+1] = 'b';
+		bprog[len+2] = 0;
+		bfd = open(bprog, O_RDONLY);
+		if (bfd >= 0) {
+			fd = bfd;
+		} else {
+			return fd;
+		}
 	}
 	// printf("open %s successfully\n", prog);
 
