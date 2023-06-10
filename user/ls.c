@@ -43,7 +43,7 @@ void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 	char *sep;
 
 	if (flag['l']) {
-		printf("%11d %c ", size, isdir ? 'd' : '-');
+		printf("0x%-8x %c ", size, isdir ? 'd' : '-');
 	}
 	if (prefix) {
 		if (prefix[0] && prefix[strlen(prefix) - 1] != '/') {
@@ -57,7 +57,11 @@ void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 	if (flag['F'] && isdir) {
 		printf("/");
 	}
-	printf(" ");
+	if (flag['l']) {
+		printf("\n");
+	} else {
+		printf(" ");
+	}
 }
 
 void usage(void) {

@@ -68,6 +68,37 @@ int open(const char *path, int mode) {
 	return fd2num(fd);
 }
 
+int openat(int dirfd, const char *path, int mode) {
+	struct Fd *dir;
+	fd_lookup(dirfd, &dir);
+	u_int dirid = ((struct Filefd *)dir)->f_fileid;
+	struct Fd *fd;
+	int r = fd_alloc(&fd);
+	if (r != 0) {
+		return r;
+	}
+	fsipc_openat(dirid, path, mode, fd);
+
+	char *va;
+	struct Filefd *ffd;
+	u_int size, fileid;
+	/* Exercise 5.9: Your code here. (3/5) */
+	va = (char *)fd2data(fd);
+	ffd = (struct Filefd *)fd;
+	fileid = ffd->f_fileid;
+	size = ffd->f_file.f_size;
+	// Step 4: Alloc pages and map the file content using 'fsipc_map'.
+	for (int i = 0; i < size; i += BY2PG) {
+		/* Exercise 5.9: Your code here. (4/5) */
+		r = fsipc_map(fileid, i, va + i);
+		if (r < 0) {
+			return r;
+		}
+	}
+
+	return fd2num(fd);
+}
+
 // Overview:
 //  Close a file descriptor
 int file_close(struct Fd *fd) {
