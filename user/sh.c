@@ -200,6 +200,7 @@ void runcmd(char *s) {
 #define DOWN 0x4d00
 #define RIGHT 0x5000
 #define LEFT 0x4800
+#define DEL 0x4000
 
 #define printUp printf("%c%c%c", 27, 91, 65);
 #define printDown printf("%c%c%c", 27, 91, 66);
@@ -252,26 +253,27 @@ void updateCons(int cursor) {
 	}
 }
 
-void backOrDelete(char op) {
+void backOrDelete(int op) {
 	if (inputLen == 0) {
 		return;
-	}
-	// if (op == '\b') {
+	} else if (op == DEL) {
+		if (afterLen == 0) {
+			return;
+		}
+		afterLen--;
+		inputLen--;
+		updateCons(beforeLen);
+	} else {
 		if (beforeLen == 0) {
 			return;
 		}
 		beforeLen--;
-	// } else if (op == 0x7f) {
-	// 	if (afterLen == 0) {
-	// 		return;
-	// 	}
-	// 	afterLen--;
-	// }
-	inputLen--;
-	if (afterLen == 0) {
-		printf("\b \b");
-	} else {
-		updateCons(beforeLen+1);
+		inputLen--;
+		if (afterLen == 0) {
+			printf("\b \b");
+		} else {
+			updateCons(beforeLen+1);
+		}
 	}
 }
 
@@ -290,6 +292,11 @@ int readDir() {
 				return RIGHT;
 			case 'D':
 				return LEFT;
+			case '3':
+				r = read(0, &inc, 1);
+				if (inc == 126) {
+					return DEL;
+				}
 			default:
 				debugf("read error: %d\n", r);
 				exit();
@@ -348,9 +355,13 @@ void readline(char *buf, u_int n) {
 			}
 			exit();
 		}
+		// printf("\n%d", inc);
 
 		if (inc == 27) {
 			dir = readDir();
+		}
+		if (dir == DEL) {
+			backOrDelete(dir);
 		}
 		
 		if (inc == '\r' || inc == '\n') {
