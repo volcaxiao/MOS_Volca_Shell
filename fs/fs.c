@@ -649,6 +649,14 @@ int walk_path(char *path, struct File **pdir, struct File **pfile, char *lastele
 	if (pdir) {
 		*pdir = dir;
 	}
+	
+	if (file->f_type == FTYPE_LNK) {
+		debugf("%s\n", file->f_name);
+		char *blk;
+		read_block(file->f_direct[0], &blk, 0);
+		walk_path(blk, 0, &file, 0);
+	}
+
 
 	*pfile = file;
 	return 0;
