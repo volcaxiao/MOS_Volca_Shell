@@ -868,6 +868,7 @@ void file_close(struct File *f) {
 	if (f->f_dir) {
 		file_flush(f->f_dir);
 	}
+	write_block(1);
 }
 
 // Overview:
