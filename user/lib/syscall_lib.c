@@ -75,10 +75,10 @@ int syscall_read_dev(void *va, u_int dev, u_int len) {
 	return msyscall(SYS_read_dev, va, dev, len);
 }
 
-int syscall_get_env_path(char* env_path) {
-	return msyscall(SYS_get_env_path, env_path);
+int syscall_get_env_path(char* envpath) {
+	return msyscall(SYS_get_env_path, envpath);
 }
 
-int syscall_change_dir(char* env_path) {
-	return msyscall(SYS_change_dir, env_path);
+int syscall_change_dir(char* envpath) {
+	return msyscall(SYS_change_dir, envpath);
 }

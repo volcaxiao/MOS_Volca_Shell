@@ -124,8 +124,6 @@ int ftruncate(int fd, u_int size);
 int sync(void);
 
 // history.c
-int history_init();
-int 
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \

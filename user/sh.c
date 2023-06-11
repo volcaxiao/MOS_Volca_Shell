@@ -432,9 +432,9 @@ int main(int argc, char **argv) {
 	}
 	for (;;) {
 		if (interactive) {
-			char *pathName;
+			char pathName[1024];
 			syscall_get_env_path(pathName);
-			printf("\n%s$ ", pathName);
+			printf("\n%s $ ", pathName);
 		}
 		readline(buf, sizeof buf);
 
