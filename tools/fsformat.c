@@ -275,7 +275,7 @@ void write_symlink(struct File *dirf, const char *path) {
 	struct File *target = create_file(dirf);
 	int n = sizeof(disk[0].data);
 
-	int r = readlink(path, disk[nextbno].data, n);
+	int r = readlink(path, (char *)disk[nextbno].data, n);
 
 	// Get file name with no path prefix.
 	const char *fname = strrchr(path, '/');

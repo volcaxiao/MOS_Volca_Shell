@@ -253,6 +253,7 @@ int sys_exofork(void) {
 	/* Step 4: Set up the new env's 'env_status' and 'env_pri'.  */
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status = ENV_NOT_RUNNABLE;
+	strcpy(e->env_path, curenv->env_path);
 	e->env_pri = curenv->env_pri;
 
 	return e->env_id;
@@ -514,6 +515,16 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+int sys_get_env_path(char* env_path) {
+	strcpy(env_path, curenv->env_path);
+	return 0;
+}
+
+int sys_change_dir(char* env_path) {
+	strcpy(curenv->env_path, env_path);
+	return 0;
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -532,6 +543,8 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_ipc_recv] = sys_ipc_recv,
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
+	[SYS_get_env_path] = sys_get_env_path,
+	[SYS_change_dir] = sys_change_dir,
     [SYS_read_dev] = sys_read_dev,
 };
 

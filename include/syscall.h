@@ -22,6 +22,8 @@ enum {
 	SYS_cgetc,
 	SYS_write_dev,
 	SYS_read_dev,
+	SYS_get_env_path,
+	SYS_change_dir,
 	MAX_SYSNO,
 };
 

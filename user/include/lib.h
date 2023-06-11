@@ -68,6 +68,8 @@ int syscall_ipc_recv(void *dstva);
 int syscall_cgetc();
 int syscall_write_dev(void *va, u_int pa, u_int len);
 int syscall_read_dev(void *va, u_int pa, u_int len);
+int syscall_get_env_path(char* env_path);
+int syscall_change_dir(char* env_path);
 
 // ipc.c
 void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm);
@@ -120,6 +122,10 @@ int read_map(int fd, u_int offset, void **blk);
 int remove(const char *path);
 int ftruncate(int fd, u_int size);
 int sync(void);
+
+// history.c
+int history_init();
+int 
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \
