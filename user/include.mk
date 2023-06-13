@@ -8,6 +8,7 @@ USERLIB              := entry.o \
 			libos.o \
 			fork.o \
 			syscall_lib.o \
+			history.o \
 			ipc.o
 
 ifeq ($(call lab-ge,5), true)

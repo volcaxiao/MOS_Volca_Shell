@@ -98,10 +98,12 @@ void serve_open(u_int envid, struct Fsreq_open *rq) {
 
 	// Open the file.
 	if ((r = file_open(rq->req_path, &f)) < 0) {
-		if (rq->req_omode == O_CREAT) {
+		if (rq->req_omode & O_CREAT) {
 			r = file_create(rq->req_path, &f);
-		} else if (rq->req_omode == O_MKDIR) {
+			// debugf("%x\n", f);
+		} else if (rq->req_omode & O_MKDIR) {
 			r = file_create(rq->req_path, &f);
+			// debugf("%x\n", f);
 			f->f_type = FTYPE_DIR;
 		}
 		if (r < 0) {
@@ -120,7 +122,7 @@ void serve_open(u_int envid, struct Fsreq_open *rq) {
 	o->o_mode = rq->req_omode;
 	ff->f_fd.fd_omode = o->o_mode;
 	ff->f_fd.fd_dev_id = devfile.dev_id;
-
+	
 	ipc_send(envid, 0, o->o_ff, PTE_D | PTE_LIBRARY);
 }
 

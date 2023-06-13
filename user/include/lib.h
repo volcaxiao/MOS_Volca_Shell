@@ -117,6 +117,8 @@ int stat(const char *path, struct Stat *);
 
 // file.c
 int open(const char *path, int mode);
+int openatThis(const char *path, int mode);
+int openAP(const char *path, int mode);
 int openat(int dirfd, const char *path, int mode);
 int pwd(int fdnum, char *pathName);
 int read_map(int fd, u_int offset, void **blk);
@@ -125,6 +127,9 @@ int ftruncate(int fd, u_int size);
 int sync(void);
 
 // history.c
+void history_init();
+int history_write(const char* content);
+int history_next(char* nowBuf, char* buf, int direction);
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \

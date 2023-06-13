@@ -106,3 +106,14 @@ char *strcat(char *dst, const char *src) {
 	}
 	return ret;
 }
+
+char *catPath(char *pre, const char *path) {
+	char *ret = pre;
+	while (*pre != 0){
+		pre++;
+	}
+	*(pre++) = '/';
+	while ((*pre++ = *path++) != 0) {
+	}
+	return ret;
+}

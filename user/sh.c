@@ -109,6 +109,9 @@ int parsecmd(char **argv, int *rightpipe) {
 			}
 			// Open 't' for writing, dup it onto fd 1, and then close the original fd.
 			fd = open(t, O_WRONLY);
+			if (fd < 0) {
+				fd = open(t, O_CREAT|O_WRONLY);
+			}
 			dup(fd, 1);
 			close(fd);
 			break;
@@ -207,11 +210,24 @@ void runcmd(char *s) {
 #define printRight printf("%c%c%c", 27, 91, 67);
 #define printLeft printf("%c%c%c", 27, 91, 68);
 
-int inputLen, beforeLen, afterLen;
+int inputLen, cursor;
+int beforeLen, afterLen;
 char beforeCur[1024];
 char afterCur[1024];
 char back[1024];
 char space[1024];
+
+void loadBuf(char *buf) {
+	int i;
+	int bufp = 0;
+	for (i = 0; i < beforeLen; i++){
+		buf[bufp++] = beforeCur[i];
+	}
+	for (i = afterLen-1; i >= 0; i--) {
+		buf[bufp++] = afterCur[i];
+	}
+	buf[bufp] = 0;
+}
 
 void initBS() {
 	int i;
@@ -226,30 +242,58 @@ void initBS() {
 	}
 }
 void printBack(int num) {
+	if (num <= 0) {
+		return;
+	}
 	back[num] = 0;
 	printf("%s", back);
 	back[num] = '\b';
 }
 void printSpace(int num) {
+	if (num <= 0) {
+		return;
+	}
 	space[num] = 0;
 	printf("%s", space);
 	space[num] = ' ';
 }
 
-void updateCons(int cursor) {
-	int i;
-	printBack(cursor);
-	printSpace(inputLen+1);
-	printBack(inputLen+1);
-
-	for (i = 0; i < beforeLen; i++){
-		printf("%c", beforeCur[i]);
-	}
-	for (i = afterLen-1; i >= 0; i--) {
-		printf("%c", afterCur[i]);
-	}
-	for (i = 0; i < afterLen; i++){
-		printLeft;
+void updateCons(int flushAll) {
+	if (flushAll) {
+		printBack(cursor);
+		int distance = inputLen - beforeLen - afterLen;
+		// printf("\n%d %d\n", inputLen, beforeLen);
+		beforeCur[beforeLen] = 0;
+		printf("%s", beforeCur);
+		int i;
+		for (i = afterLen-1; i >= 0; i--) {
+			printf("%c", afterCur[i]);
+		}
+		if (distance < 0) {
+			distance = 0;
+		}
+		printSpace(distance);
+		printBack(distance + afterLen);
+		inputLen = beforeLen + afterLen;
+		cursor = beforeLen;
+	} else {
+		int distance = inputLen - beforeLen - afterLen;
+		if (distance == 0) {
+			cursor = beforeLen;
+			return;
+		}
+		int i;
+		printBack(cursor - beforeLen);
+		cursor = beforeLen;
+		for (i = afterLen-1; i >= 0; i--) {
+			printf("%c", afterCur[i]);
+		}
+		if (distance < 0) {
+			distance = 0;
+		}
+		printSpace(distance);
+		printBack(distance + afterLen);
+		inputLen = beforeLen + afterLen;
 	}
 }
 
@@ -261,19 +305,11 @@ void backOrDelete(int op) {
 			return;
 		}
 		afterLen--;
-		inputLen--;
-		updateCons(beforeLen);
 	} else {
 		if (beforeLen == 0) {
 			return;
 		}
 		beforeLen--;
-		inputLen--;
-		if (afterLen == 0) {
-			printf("\b \b");
-		} else {
-			updateCons(beforeLen+1);
-		}
 	}
 }
 
@@ -310,8 +346,22 @@ int readDir() {
 void moveCursor(int direction) {
 	if (direction == UP) {
 		printDown;
+		char nowBuf[1024];
+		loadBuf(nowBuf);
+		int len = history_next(nowBuf, beforeCur, 1);
+		if (len >= 0) {
+			beforeLen = len;
+			afterLen = 0;
+		}
+		updateCons(1);
 		return;
 	} else if (direction == DOWN) {
+		int len = history_next(NULL, beforeCur, 0);
+		if (len >= 0) {
+			beforeLen = len;
+			afterLen = 0;
+		}
+		updateCons(1);
 		return;
 	} else if (beforeLen == inputLen 
 				&& direction == RIGHT) {
@@ -328,18 +378,6 @@ void moveCursor(int direction) {
 	} else if (direction == LEFT) {
 		afterCur[afterLen++] = beforeCur[--beforeLen];
 	}
-}
-
-void loadBuf(char *buf) {
-	int i;
-	int bufp = 0;
-	for (i = 0; i < beforeLen; i++){
-		buf[bufp++] = beforeCur[i];
-	}
-	for (i = afterLen-1; i >= 0; i--) {
-		buf[bufp++] = afterCur[i];
-	}
-	buf[bufp] = 0;
 }
 
 void readline(char *buf, u_int n) {
@@ -359,25 +397,23 @@ void readline(char *buf, u_int n) {
 
 		if (inc == 27) {
 			dir = readDir();
-		}
-		if (dir == DEL) {
-			backOrDelete(dir);
-		}
-		
-		if (inc == '\r' || inc == '\n') {
+			if (dir == DEL) {
+				backOrDelete(dir);
+			} else {
+				moveCursor(dir);
+			}
+		} else if (inc == '\r' || inc == '\n') {
+			cursor = 0;
+			inputLen = 0;
 			loadBuf(buf);
+			history_write(buf);
 			return;
 		} else if (inc == '\b' || inc == 0x7f) {
 			backOrDelete(inc);
-		} else if (inc == 27) {
-			moveCursor(dir);
 		} else {
 			beforeCur[beforeLen++] = inc;
-			inputLen++;
-			if (afterLen != 0) {
-				updateCons(beforeLen);
-			}
 		}
+		updateCons(0);
 	}
 	debugf("line too long\n");
 	while ((r = read(0, buf, 1)) == 1 && buf[0] != '\r' && buf[0] != '\n') {
@@ -430,11 +466,12 @@ int main(int argc, char **argv) {
 		}
 		user_assert(r == 0);
 	}
+	history_init();
 	for (;;) {
 		if (interactive) {
 			char pathName[1024];
 			syscall_get_env_path(0, pathName);
-			printf("\n/%s$ ", pathName);
+			printf("\n%c%s$ ", pathName[0] == 0 ? '/' : 0, pathName);
 		}
 		readline(buf, sizeof buf);
 
@@ -452,10 +489,6 @@ int main(int argc, char **argv) {
 			exit();
 		} else {
 			wait(r);
-			// char pathName[1024];
-			// syscall_get_env_path(0, pathName);
-			// printf("%s\n", pathName);
-			// syscall_change_dir(pathName);
 		}
 	}
 	return 0;
