@@ -433,8 +433,8 @@ int main(int argc, char **argv) {
 	for (;;) {
 		if (interactive) {
 			char pathName[1024];
-			syscall_get_env_path(pathName);
-			printf("\n%s $ ", pathName);
+			syscall_get_env_path(0, pathName);
+			printf("\n/%s$ ", pathName);
 		}
 		readline(buf, sizeof buf);
 
@@ -452,6 +452,10 @@ int main(int argc, char **argv) {
 			exit();
 		} else {
 			wait(r);
+			// char pathName[1024];
+			// syscall_get_env_path(0, pathName);
+			// printf("%s\n", pathName);
+			// syscall_change_dir(pathName);
 		}
 	}
 	return 0;

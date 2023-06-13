@@ -95,3 +95,14 @@ int strcmp(const char *p, const char *q) {
 
 	return 0;
 }
+
+char *strcat(char *dst, const char *src) {
+	char *ret = dst;
+	while (*dst != 0){
+		dst++;
+	}
+	
+	while ((*dst++ = *src++) != 0) {
+	}
+	return ret;
+}

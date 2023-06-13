@@ -28,7 +28,7 @@ void lsdir(char *path, char *prefix) {
 	}
 	while ((n = readn(fd, &f, sizeof f)) == sizeof f) {
 		if (f.f_name[0]) {
-			ls1(prefix, f.f_type == FTYPE_DIR, f.f_size, f.f_name);
+			ls1("", f.f_type == FTYPE_DIR, f.f_size, f.f_name);
 		}
 	}
 	if (n > 0) {

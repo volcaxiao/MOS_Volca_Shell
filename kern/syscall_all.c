@@ -515,12 +515,29 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
-int sys_get_env_path(char* env_path) {
-	strcpy(env_path, curenv->env_path);
+int sys_get_env_path(int envid, char* env_path) {
+	struct Env *e;
+	int r;
+	r = envid2env((u_int)envid, &e, 1);
+	if (r < 0) {
+		return r;
+	}
+	strcpy(env_path, e->env_path);
 	return 0;
 }
 
-int sys_change_dir(char* env_path) {
+int sys_change_dir(char* env_path, int changeParent) {
+	if (changeParent == 1) {
+		struct Env *parent = curenv;
+		while (parent->env_parent_id > 0) {
+			int r;
+			r = envid2env((u_int)parent->env_parent_id, &parent, 0);
+			if (r < 0) {
+				return r;
+			}
+			strcpy(parent->env_path, env_path);
+		}
+	}
 	strcpy(curenv->env_path, env_path);
 	return 0;
 }

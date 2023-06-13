@@ -68,6 +68,16 @@ int open(const char *path, int mode) {
 	return fd2num(fd);
 }
 
+int openatThis(const char *path, int mode) {
+	char pathName[1024];
+    syscall_get_env_path(0, pathName);
+	int len = strlen(pathName);
+	pathName[len] = '/';
+    strcat(pathName, path);
+	// printf("path is %s, open %s\n", path, pathName);
+	return open(pathName, mode);
+}
+
 int openat(int dirfd, const char *path, int mode) {
 	struct Fd *dir;
 	fd_lookup(dirfd, &dir);
@@ -137,6 +147,17 @@ int file_close(struct Fd *fd) {
 		}
 	}
 	return 0;
+}
+
+int pwd(int fdnum, char *pathName) {
+	int r;
+	struct Fd *fd;
+
+	if ((r = fd_lookup(fdnum, &fd)) < 0) {
+		return r;
+	}
+	struct File file = ((struct Filefd *)fd)->f_file;
+
 }
 
 // Overview:
