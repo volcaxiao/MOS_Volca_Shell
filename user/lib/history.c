@@ -1,4 +1,5 @@
 #include <lib.h>
+
 int nowOff;
 int maxOff;
 int fakeMaxOff;
@@ -20,6 +21,10 @@ int writeEntry(int fd, int offset, const char* buf) {
     write(fd, &len, 4);
     write(fd, buf, len);
     write(fd, &len, 4);
+    // 标定结束
+    int zero = 0;
+    write(fd, &zero, 4);
+    write(fd, &zero, 4);
     // printf("\n%s\n", buf);
     return len;
 }
@@ -61,7 +66,31 @@ int history_write(const char* buf) {
     nowOff = maxOff;
     fakeMaxOff = maxOff;
     close(fd);
+    // printf ("now MaxOff is %d\n", maxOff);
     return 0;
+}
+
+/**
+ * return cnt of history;
+*/
+char tmpBuf[1024][MAX_CMD_LEN];
+int history_get_all(char **history_buf) {
+    // printf ("now MaxOff is %d\n", maxOff);
+    int fd = openAP(".history", O_RDONLY);
+    nowOff = 0;
+    int cnt = 0;
+    while (1) {
+        int len = readDownEntry(fd, nowOff, tmpBuf[cnt]);
+        history_buf[cnt] = tmpBuf[cnt];
+        // printf ("%4d : %s\n", cnt + 1, history_buf[cnt]);
+        if (len == 0) {
+            break;
+        }
+        nowOff += len + 8;
+        cnt++;
+    }
+    close(fd);
+    return cnt;
 }
 
 /**
@@ -71,8 +100,8 @@ int history_write(const char* buf) {
  * nowOff is maxOff buf down
  * return len;
 */
-
 int history_next(char* nowBuf, char* buf, int direction) {
+    // printf ("now MaxOff is %d\n", maxOff);
     if ((nowOff == 0 && direction == 1) || maxOff == 0) {
         return -1;
     }
@@ -101,9 +130,6 @@ int history_next(char* nowBuf, char* buf, int direction) {
         nowOff -= (len + 8);
     }
     close(fd);
+    
     return len;
-}
-
-int history_get_all(char **history_buf) {
-
 }

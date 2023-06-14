@@ -26,12 +26,13 @@ struct Dev devfile = {
 //  the file descriptor on success,
 //  the underlying error on failure.
 int open(const char *path, int mode) {
-	int r;
-	r = openatThis(path, mode);
-	if (r < 0) {
+	if (path[0] == '/') {
 		return openAP(path, mode);
+	} else {
+		char nowPath[MAXPATHLEN];
+		syscall_get_env_path(0, nowPath);
+		return openatThis(nowPath, path, mode);
 	}
-	return r;
 }
 
 int openAP(const char *path, int mode) {
@@ -79,12 +80,29 @@ int openAP(const char *path, int mode) {
 	return fd2num(fd);
 }
 
-int openatThis(const char *path, int mode) {
-	char pathName[1024];
-    syscall_get_env_path(0, pathName);
-	catPath(pathName, path);
-	// printf("path is %s, open %s\n", path, pathName);
-	return openAP(pathName, mode);
+int openatThis(char *nowPath, const char *path, int mode) {
+	char dir[MAXNAMELEN];
+	char nextPath[MAXPATHLEN];
+	splitPath(dir, nextPath, path);
+	if (strcmp(dir, ".") ==  0) {
+		// nothing
+	} else if (strcmp(dir, "..") == 0) {
+		// debugf("nowPath is %s\n", nowPath);
+		// debugf("toParent\n");
+		toParentPath(nowPath);
+	} else {
+		catPath(nowPath, dir);
+	}
+	// debugf("dir is %s\n", dir);
+	// debugf("nextPath is %s\n", nextPath);
+	// debugf("nowPath is %s\n", nowPath);
+	
+	if (nextPath[0] == 0) {
+		return openAP(nowPath, mode);
+	} else {
+		return openatThis(nowPath, nextPath, mode);
+	}
+	
 }
 
 int openat(int dirfd, const char *path, int mode) {

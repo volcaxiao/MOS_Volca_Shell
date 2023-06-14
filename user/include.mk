@@ -40,6 +40,7 @@ ifeq ($(call lab-ge,6), true)
 			tree.b \
 			cd.b \
 			pwd.b \
+			history.b \
 			testpipe.b \
 			testpiperace.b \
 			testptelibrary.b \

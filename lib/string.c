@@ -1,4 +1,7 @@
 #include <types.h>
+#define isAlphaOrData(c) (('a' <= c && c <= 'z') \
+						|| ('A' <= c && c <= 'Z') \
+						|| ('0' <= c && c <= '9'))
 
 void *memcpy(void *dst, const void *src, size_t n) {
 	void *dstaddr = dst;
@@ -107,13 +110,72 @@ char *strcat(char *dst, const char *src) {
 	return ret;
 }
 
+// char *pathNameFormat(const char *pathName) {
+// 	char pathNameFormat[1024] = {'/'};
+// 	int cnt = 0;
+// 	int i = 0;
+
+// 	for (i = 0; pathName[i] != 0; i++) {
+// 		if (pathName[i] != '/') {
+// 			pathNameFormat[cnt++] = '/';
+// 			while (pathName[i] != '/' && pathName[i] != 0) {
+// 				pathNameFormat[cnt++] = pathName[i++];
+// 			}
+// 		}
+// 	}
+// 	return pathNameFormat;
+// }
+
 char *catPath(char *pre, const char *path) {
 	char *ret = pre;
 	while (*pre != 0){
 		pre++;
 	}
-	*(pre++) = '/';
+	if (*(pre - 1) != '/' && *path != '/') {
+		*(pre++) = '/';
+	}
 	while ((*pre++ = *path++) != 0) {
 	}
 	return ret;
+}
+
+char *toParentPath(char *pathName) {
+	if (strcmp(pathName, "/") == 0) {
+		return pathName;
+	}
+	int len = strlen(pathName);
+	while(len--) {
+		if (pathName[len] == '/') {
+			pathName[len] = 0;
+			break;
+		}
+		pathName[len] = 0;
+	}
+	if (pathName[0] == 0) {
+		pathName[0] = '/';
+	}
+	return pathName;
+}
+
+char *splitPath(char *firDir, char* nextPath, const char *pathName) {
+	if (pathName[0] == '/') {
+		return NULL;
+	}
+	int i = 0;
+	while (pathName[i] != '/' && pathName[i] != 0) {
+		firDir[i] = pathName[i];
+		i++;
+	}
+	firDir[i] = 0;
+	if (pathName[i] == 0) {
+		return NULL;
+	}
+
+	int nexti = 0;
+	i++;
+	while (pathName[i] != 0) {
+		nextPath[nexti++] = pathName[i++];
+	}
+	nextPath[nexti] = 0;
+	return nextPath;
 }

@@ -12,7 +12,7 @@
 #define vpd ((volatile Pde *)(UVPT + (PDX(UVPT) << PGSHIFT)))
 #define envs ((volatile struct Env *)UENVS)
 #define pages ((volatile struct Page *)UPAGES)
-
+#define MAX_CMD_LEN 1024
 // libos
 void exit(void) __attribute__((noreturn));
 
@@ -117,7 +117,7 @@ int stat(const char *path, struct Stat *);
 
 // file.c
 int open(const char *path, int mode);
-int openatThis(const char *path, int mode);
+int openatThis(char *nowPath, const char *path, int mode);
 int openAP(const char *path, int mode);
 int openat(int dirfd, const char *path, int mode);
 int pwd(int fdnum, char *pathName);
@@ -128,8 +128,10 @@ int sync(void);
 
 // history.c
 void history_init();
+int history_get_all(char **history_buf);
 int history_write(const char* content);
 int history_next(char* nowBuf, char* buf, int direction);
+
 
 #define user_assert(x)                                                                             \
 	do {                                                                                       \

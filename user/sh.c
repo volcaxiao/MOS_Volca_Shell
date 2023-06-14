@@ -471,7 +471,7 @@ int main(int argc, char **argv) {
 		if (interactive) {
 			char pathName[1024];
 			syscall_get_env_path(0, pathName);
-			printf("\n%c%s$ ", pathName[0] == 0 ? '/' : 0, pathName);
+			printf("\n%s$ ", pathName);
 		}
 		readline(buf, sizeof buf);
 
