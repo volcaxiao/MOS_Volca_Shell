@@ -32,6 +32,16 @@ int open(const char *path, int mode) {
 		char nowPath[MAXPATHLEN];
 		syscall_get_env_path(0, nowPath);
 		int fd = openatThis(nowPath, path, mode);
+		//权宜之计*****************************
+		if (fd < 0) {
+			int len = strlen(path);
+			if (path[len - 1] == 'b' && path[len - 2] == '.') {
+				char rootPath[MAXPATHLEN] = {'/'};
+				strcat(rootPath, path);
+				return openAP(rootPath, mode);
+			}
+		}
+		//*************************************
 		return fd;
 	}
 }
@@ -100,6 +110,7 @@ int openatThis(char *nowPath, const char *path, int mode) {
 	// debugf("nextPath is %s\n", nextPath);
 	// debugf("nowPath is %s\n", nowPath);
 	if (nextPath[0] == 0) {
+		// printf("signal\n");
 		return openAP(nowPath, mode);
 	} else {
 		return openatThis(nowPath, nextPath, mode);

@@ -60,7 +60,7 @@ void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 	}
 
 	if (flag['l']) {
-		printf("0x%-8x %c ", size, isdir ? 'd' : '-');
+		printf("\033[32;1m[%8dB]\033[0m %c ", size, isdir ? 'd' : '-');
 	}
 	if (prefix) {
 		if (prefix[0] && prefix[strlen(prefix) - 1] != '/') {

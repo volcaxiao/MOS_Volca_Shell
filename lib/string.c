@@ -90,6 +90,9 @@ int strContain(const char *parent, const char *child, char *waitToComp) {
 		parent++;
 		child++;
 	}
+	if (*parent == 0) {
+		return -1;
+	}
 	if (*child == 0) {
 		strcpy(waitToComp, parent);
 		return 0;

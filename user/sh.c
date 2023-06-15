@@ -490,7 +490,6 @@ void tabComplete() {
 			break;
 		}
 	}
-
 	
 	beforeCur[beforeTab] = 0;
 	beforeLen = beforeTab;
@@ -498,9 +497,8 @@ void tabComplete() {
 
 	strcat(beforeCur, completions[tabPoint++]);
 	beforeLen = strlen(beforeCur);
-	// printf("\nbeforeCur is %s, after is %s, cursor is %d, afterLen is %d\n", beforeCur, afterCur, cursor, afterLen);
+	// printf("\nbeforeCur is %s, after is %s, cursor is %d, beforLen is %d, afterLen is %d\n", beforeCur, afterCur, cursor, beforeLen, afterLen);
 	updateCons(0);
-
 }
 
 void dealTab() {
