@@ -6,6 +6,8 @@ static int cons_write(struct Fd *, const void *, u_int, u_int);
 static int cons_close(struct Fd *);
 static int cons_stat(struct Fd *, struct Stat *);
 
+int closeInputBack;
+
 struct Dev devcons = {
     .dev_id = 'c',
     .dev_name = "cons",
@@ -50,12 +52,15 @@ int cons_read(struct Fd *fd, void *vbuf, u_int n, u_int offset) {
 	while ((c = syscall_cgetc()) == 0) {
 		syscall_yield();
 	}
-
-	if (c != '\r') {
-		debugf("%c", c);
-	} else {
-		debugf("\n");
+	
+	if (!closeInputBack) {
+		if (c != '\r') {
+			debugf("%c", c);
+		} else {
+			debugf("\n");
+		}
 	}
+	
 	if (c < 0) {
 		return c;
 	}
@@ -81,4 +86,8 @@ int cons_close(struct Fd *fd) {
 int cons_stat(struct Fd *fd, struct Stat *stat) {
 	strcpy(stat->st_name, "<cons>");
 	return 0;
+}
+
+void setInputBack(int closeOrNot) {
+	closeInputBack = closeOrNot;
 }

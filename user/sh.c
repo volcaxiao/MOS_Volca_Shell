@@ -282,9 +282,14 @@ void updateCons(int flushAll) {
 			cursor = beforeLen;
 			return;
 		}
-		int i;
-		printBack(cursor - beforeLen);
+		if (cursor > beforeLen) {
+			printBack(cursor - beforeLen);
+		} else {
+			beforeCur[beforeLen] = 0;
+			printf("%s", beforeCur+cursor);
+		}
 		cursor = beforeLen;
+		int i;
 		for (i = afterLen-1; i >= 0; i--) {
 			printf("%c", afterCur[i]);
 		}
@@ -311,6 +316,7 @@ void backOrDelete(int op) {
 		}
 		beforeLen--;
 	}
+	updateCons(0);
 }
 
 int readDir() {
@@ -335,17 +341,16 @@ int readDir() {
 				}
 			default:
 				debugf("read error: %d\n", r);
-				exit();
+				return -1;
 		}
 	} else {
 		debugf("read error: %d\n", r);
-		exit();
+		return -1;
 	}
 }
 
 void moveCursor(int direction) {
 	if (direction == UP) {
-		printDown;
 		char nowBuf[1024];
 		loadBuf(nowBuf);
 		int len = history_next(nowBuf, beforeCur, 1);
@@ -365,20 +370,136 @@ void moveCursor(int direction) {
 		return;
 	} else if (beforeLen == inputLen 
 				&& direction == RIGHT) {
-		printLeft;
 		return;
 	} else if (beforeLen == 0 
 				&& direction == LEFT) {
-		printRight;
 		return;
 	}
 	
 	if (direction == RIGHT) {
+		printRight;
 		beforeCur[beforeLen++] = afterCur[--afterLen];
 	} else if (direction == LEFT) {
+		printLeft;
 		afterCur[afterLen++] = beforeCur[--beforeLen];
 	}
+	updateCons(0);
 }
+
+/**
+ * tab auto completion
+*/
+#define MAXFILENUM 128
+int tabFlush;
+char completions[MAXFILENUM][MAXNAMELEN];
+int compNum, tabPoint;
+int beforeTab;
+
+void strRevCpy(char *dst, const char *src) {
+	int i = 0;
+	int len = strlen(src);
+	while (len--) {
+		dst[i++] = src[len];
+	}
+	dst[i] = 0;
+}
+
+int getTbCom(char *comPath, char *tobeCom) {
+	int i;
+	int tmpCnt = 0;
+	char tmpDir[MAXPATHLEN];
+	int hasTobe = 0;
+	for (i = beforeLen - 1; i >= 0; i--) {
+		if (beforeCur[i] == ' ') {
+			break;
+		} else if (beforeCur[i] == '/' && hasTobe == 0) {
+			tmpDir[tmpCnt] = 0;
+			strRevCpy(tobeCom, tmpDir);
+			hasTobe = 1;
+			tmpCnt = 1;
+			tmpDir[0] = '/';
+		} else {
+			tmpDir[tmpCnt++] = beforeCur[i];
+		}
+	}
+	// printf("\ncomPath is %s, tmpDir is %s\n", comPath, tmpDir);
+	// 结束力
+	if (hasTobe == 0) {
+		tmpDir[tmpCnt] = 0;
+		strRevCpy(tobeCom, tmpDir);
+	} else {
+		tmpDir[tmpCnt] = 0;
+		strRevCpy(comPath, tmpDir);
+	}
+	
+	return 0;
+}
+
+void tabFlushDir() {
+	char comPath[MAXPATHLEN] = {0};
+	char tobeCom[MAXPATHLEN] = {0};
+	int fd;
+	int r = getTbCom(comPath, tobeCom);
+	if (r < 0) {
+		return;
+	}
+	if (tobeCom[0] == 0) {
+		return;
+	}
+	if (comPath[0] == 0) {
+		char nowPath[MAXPATHLEN];
+		syscall_get_env_path(0, nowPath);
+		fd = open(nowPath, O_RDONLY);
+	} else {
+		fd = open(comPath, O_RDONLY);
+	}
+	if (fd < 0) {
+		return;
+	}
+	
+	struct File f;
+	int n;
+	compNum = 0;
+	while ((n = readn(fd, &f, sizeof f)) == sizeof f) {
+		if (f.f_name[0]) {
+			int r;
+			if ((r = strContain(f.f_name, tobeCom, completions[compNum])) == 0) {
+				compNum++;
+			}
+		}
+	}
+	close(fd);
+}
+
+void tabComplete() {
+	if (compNum == 0) {
+		return;
+	}
+	if (tabPoint >= compNum) {
+		tabPoint = 0;
+	}
+	
+	beforeCur[beforeTab] = 0;
+	beforeLen = beforeTab;
+	updateCons(0);
+
+	strcat(beforeCur, completions[tabPoint++]);
+	beforeLen = strlen(beforeCur);
+	updateCons(0);
+}
+
+void dealTab() {
+	if (tabFlush) {
+		compNum = 0;
+		tabFlushDir();
+		tabFlush = 0;
+		beforeTab = beforeLen;
+	}
+	tabComplete();
+}
+/**
+ * tab auto completion end
+*/
 
 void readline(char *buf, u_int n) {
 	int r;
@@ -393,12 +514,18 @@ void readline(char *buf, u_int n) {
 			}
 			exit();
 		}
-		// printf("\n%d", inc);
+
+		if (inc != '\t') {
+			tabFlush = 1;
+		}
 
 		if (inc == 27) {
 			dir = readDir();
 			if (dir == DEL) {
 				backOrDelete(dir);
+			} else if (dir < 0) {
+				printf("\n");
+				return;
 			} else {
 				moveCursor(dir);
 			}
@@ -407,9 +534,12 @@ void readline(char *buf, u_int n) {
 			inputLen = 0;
 			loadBuf(buf);
 			history_write(buf);
+			printf("\n");
 			return;
 		} else if (inc == '\b' || inc == 0x7f) {
 			backOrDelete(inc);
+		} else if (inc == '\t') {
+			dealTab();
 		} else {
 			beforeCur[beforeLen++] = inc;
 		}
@@ -439,6 +569,7 @@ int main(int argc, char **argv) {
 	int interactive = iscons(0);
 	int echocmds = 0;
 	initBS();
+	setInputBack(1);
 	debugf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
 	debugf("::                                                         ::\n");
 	debugf("::                     MOS Shell 2023                      ::\n");
@@ -474,7 +605,6 @@ int main(int argc, char **argv) {
 			printf("\n%s$ ", pathName);
 		}
 		readline(buf, sizeof buf);
-
 		if (buf[0] == '#') {
 			continue;
 		}

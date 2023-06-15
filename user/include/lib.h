@@ -81,6 +81,7 @@ void wait(u_int envid);
 // console.c
 int opencons(void);
 int iscons(int fdnum);
+void setInputBack(int closeOrNot);
 
 // pipe.c
 int pipe(int pfd[2]);

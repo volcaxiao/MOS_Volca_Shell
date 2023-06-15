@@ -106,9 +106,11 @@ int spawn(char *prog, char **argv) {
 	// Return the error if 'open' fails.
 	int fd;
 	// debugf("open %s\n", prog);
+	
 	if ((fd = open(prog, O_RDONLY)) < 0) {
 		int bfd, len;
-		char bprog[MAXNAMELEN];
+		char bprog[MAXPATHLEN];
+		// printf("%d\n", strlen(bprog));
 		strcpy(bprog, prog);
 		len = strlen(bprog);
 		bprog[len] = '.';
@@ -122,7 +124,7 @@ int spawn(char *prog, char **argv) {
 		}
 	}
 	// printf("open %s successfully\n", prog);
-
+	
 	// Step 2: Read the ELF header (of type 'Elf32_Ehdr') from the file into 'elfbuf' using
 	// 'readn()'.
 	// If that fails (where 'readn' returns a different size than expected),
@@ -135,7 +137,6 @@ int spawn(char *prog, char **argv) {
 		r = -E_NOT_EXEC;
 		goto err;
 	}
-
 	const Elf32_Ehdr *ehdr = elf_from(elfbuf, sizeof(Elf32_Ehdr));
 	if (!ehdr) {
 		r = -E_NOT_EXEC;

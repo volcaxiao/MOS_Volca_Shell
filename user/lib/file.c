@@ -31,7 +31,8 @@ int open(const char *path, int mode) {
 	} else {
 		char nowPath[MAXPATHLEN];
 		syscall_get_env_path(0, nowPath);
-		return openatThis(nowPath, path, mode);
+		int fd = openatThis(nowPath, path, mode);
+		return fd;
 	}
 }
 
@@ -54,7 +55,6 @@ int openAP(const char *path, int mode) {
 	if (r < 0) {
 		return r;
 	}
-
 	// printf("open %s successfully\n", path);
 	// Step 3: Set 'va' to the address of the page where the 'fd''s data is cached, using
 	// 'fd2data'. Set 'size' and 'fileid' correctly with the value in 'fd' as a 'Filefd'.
@@ -74,7 +74,6 @@ int openAP(const char *path, int mode) {
 			return r;
 		}
 	}
-
 	// Step 5: Return the number of file descriptor using 'fd2num'.
 	/* Exercise 5.9: Your code here. (5/5) */
 	return fd2num(fd);
@@ -83,7 +82,11 @@ int openAP(const char *path, int mode) {
 int openatThis(char *nowPath, const char *path, int mode) {
 	char dir[MAXNAMELEN];
 	char nextPath[MAXPATHLEN];
-	splitPath(dir, nextPath, path);
+	int r = splitPath(dir, nextPath, path);
+	if (r < 0) {
+		debugf("your fileName is too long!!!!\n");
+		return -1;
+	}
 	if (strcmp(dir, ".") ==  0) {
 		// nothing
 	} else if (strcmp(dir, "..") == 0) {
@@ -96,7 +99,6 @@ int openatThis(char *nowPath, const char *path, int mode) {
 	// debugf("dir is %s\n", dir);
 	// debugf("nextPath is %s\n", nextPath);
 	// debugf("nowPath is %s\n", nowPath);
-	
 	if (nextPath[0] == 0) {
 		return openAP(nowPath, mode);
 	} else {
