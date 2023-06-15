@@ -17,4 +17,6 @@ char *toParentPath(char *pathName);
 // char *pathNameFormat(const char *pathName);
 int splitPath(char *firDir, char* nextPath, const char *pathName);
 
+int strToUint(char *str);
+
 #endif

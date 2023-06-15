@@ -178,17 +178,6 @@ int file_close(struct Fd *fd) {
 	return 0;
 }
 
-int pwd(int fdnum, char *pathName) {
-	int r;
-	struct Fd *fd;
-
-	if ((r = fd_lookup(fdnum, &fd)) < 0) {
-		return r;
-	}
-	struct File file = ((struct Filefd *)fd)->f_file;
-
-}
-
 // Overview:
 //  Read 'n' bytes from 'fd' at the current seek position into 'buf'. Since files
 //  are memory-mapped, this amounts to a memcpy() surrounded by a little red

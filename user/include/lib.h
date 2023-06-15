@@ -121,7 +121,6 @@ int open(const char *path, int mode);
 int openatThis(char *nowPath, const char *path, int mode);
 int openAP(const char *path, int mode);
 int openat(int dirfd, const char *path, int mode);
-int pwd(int fdnum, char *pathName);
 int read_map(int fd, u_int offset, void **blk);
 int remove(const char *path);
 int ftruncate(int fd, u_int size);

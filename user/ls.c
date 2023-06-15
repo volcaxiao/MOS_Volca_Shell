@@ -1,4 +1,18 @@
 #include <lib.h>
+#define _OP_ERR_                                                                                    \
+	"ls: missing operand \n\
+Try 'ls --help' for more information. \n"
+
+#define _HELP_                                                                                     \
+	"Usage: ls [OPTION]... [FILE]... \n\
+List information about the FILEs (the current directory by default). \n\
+\n\
+Mandatory arguments to long options are mandatory for short options too. \n\
+  -a, --all                  do not ignore entries starting with . \n\
+  -d, --directory            list directories themselves, not their contents \n\
+  -F, --classify             append indicator (one of */=>@|) to entries \n\
+  -l                         use a long listing format \n\
+      --help     display this help and exit \n"
 
 int flag[256];
 
@@ -41,6 +55,9 @@ void lsdir(char *path, char *prefix) {
 
 void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 	char *sep;
+	if (!flag['a'] && name[0] == '.') {
+		return;
+	}
 
 	if (flag['l']) {
 		printf("0x%-8x %c ", size, isdir ? 'd' : '-');
@@ -53,7 +70,12 @@ void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 		}
 		printf("%s%s", prefix, sep);
 	}
-	printf("%s", name);
+	if (isdir) {
+		printf("\033[34;1m%s\033[0m", name);
+	} else {
+		printf("%s", name);
+	}
+
 	if (flag['F'] && isdir) {
 		printf("/");
 	}
@@ -65,16 +87,22 @@ void ls1(char *prefix, u_int isdir, u_int size, char *name) {
 }
 
 void usage(void) {
-	printf("usage: ls [-dFl] [file...]\n");
+	printf(_OP_ERR_);
 	exit();
 }
 
 int main(int argc, char **argv) {
+	if (strcmp(argv[1], "--help") == 0) {
+		debugf(_HELP_);
+		return 0;
+	}
+	
 	int i;
 
 	ARGBEGIN {
 	default:
 		usage();
+	case 'a':
 	case 'd':
 	case 'F':
 	case 'l':
@@ -84,7 +112,9 @@ int main(int argc, char **argv) {
 	ARGEND
 
 	if (argc == 0) {
-		ls("/", "");
+		char nowPath[MAXPATHLEN];
+		syscall_get_env_path(0, nowPath);
+		ls(nowPath, "");
 	} else {
 		for (i = 0; i < argc; i++) {
 			ls(argv[i], argv[i]);

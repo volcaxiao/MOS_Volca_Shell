@@ -180,3 +180,16 @@ int splitPath(char *firDir, char* nextPath, const char *pathName) {
 	nextPath[nexti] = 0;
 	return 0;
 }
+
+int strToUint(char *str) {
+	int r = 0;
+	int i;
+	for (i = 0; str[i] != 0; i++) {
+		if ('0' <= str[i] && str[i] <= '9') {
+			r = (str[i] - '0') + r * 10;
+		} else {
+			return -1;
+		}
+	}
+	return r;
+}

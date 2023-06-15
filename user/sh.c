@@ -279,6 +279,8 @@ void updateCons(int flushAll) {
 	} else {
 		int distance = inputLen - beforeLen - afterLen;
 		if (distance == 0) {
+			beforeCur[beforeLen] = 0;
+			afterCur[afterLen] = 0;
 			cursor = beforeLen;
 			return;
 		}
@@ -478,6 +480,17 @@ void tabComplete() {
 	if (tabPoint >= compNum) {
 		tabPoint = 0;
 	}
+	int i;
+	
+	for (i = afterLen - 1; i >= 0; i--) {
+		if (afterCur[i] != ' ' && afterCur[i] != 0) {
+			afterCur[i] = 0;
+			afterLen--;
+		} else {
+			break;
+		}
+	}
+
 	
 	beforeCur[beforeTab] = 0;
 	beforeLen = beforeTab;
@@ -485,7 +498,9 @@ void tabComplete() {
 
 	strcat(beforeCur, completions[tabPoint++]);
 	beforeLen = strlen(beforeCur);
+	// printf("\nbeforeCur is %s, after is %s, cursor is %d, afterLen is %d\n", beforeCur, afterCur, cursor, afterLen);
 	updateCons(0);
+
 }
 
 void dealTab() {
@@ -602,7 +617,7 @@ int main(int argc, char **argv) {
 		if (interactive) {
 			char pathName[1024];
 			syscall_get_env_path(0, pathName);
-			printf("\n%s$ ", pathName);
+			printf("\n\033[34;1m%s\033[0m$ ", pathName);
 		}
 		readline(buf, sizeof buf);
 		if (buf[0] == '#') {
