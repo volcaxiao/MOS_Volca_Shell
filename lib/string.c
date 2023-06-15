@@ -2,6 +2,7 @@
 #define isAlphaOrData(c) (('a' <= c && c <= 'z') \
 						|| ('A' <= c && c <= 'Z') \
 						|| ('0' <= c && c <= '9'))
+#define isVisable(c) (32 <= c && c <= 126)
 #define MAXPATHLEN 1024
 #define MAXNAMELEN 128
 
@@ -72,7 +73,7 @@ char *strcpy(char *dst, const char *src) {
 
 	while ((*dst++ = *src++) != 0) {
 	}
-
+	*dst = 0;
 	return ret;
 }
 
@@ -90,7 +91,7 @@ int strContain(const char *parent, const char *child, char *waitToComp) {
 		parent++;
 		child++;
 	}
-	if (*parent == 0) {
+	if (!isVisable(*parent)) {
 		return -1;
 	}
 	if (*child == 0) {
