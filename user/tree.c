@@ -32,9 +32,9 @@ void identPrint(const char *path, struct File file,  const char *ident) {
     }
     if (flag['s']) {
         if (file.f_type == FTYPE_DIR) {
-            printf("%s\033[32;1m[%8dB]\033[0m|-\033[34;1m%s\033[0m\n", ident, file.f_size, pathName);
+            printf("%s|-\033[32;1m[%8dB]\033[0m\033[34;1m%s\033[0m\n", ident, file.f_size, pathName);
         } else {
-            printf("%s\033[32;1m[%8dB]\033[0m|-%s\n", ident, file.f_size, pathName);
+            printf("%s|-\033[32;1m[%8dB]\033[0m%s\n", ident, file.f_size, pathName);
         }
     } else {
         if (file.f_type == FTYPE_DIR) {

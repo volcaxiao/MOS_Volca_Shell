@@ -196,8 +196,6 @@ void runcmd(char *s) {
  * readLine
  * beforeCur from 0 to beforeLen-1
  * afterCur from afterLen-1 to 0
- * but cant intput 27 ESC
- * 暂时不支持delete
 *****************************************************/
 #define UP 0x4b00
 #define DOWN 0x4d00
@@ -388,9 +386,9 @@ void moveCursor(int direction) {
 	updateCons(0);
 }
 
-/**
- * tab auto completion
-*/
+/****************************************************
+ * tab complete
+*****************************************************/
 #define MAXFILENUM 128
 int tabFlush;
 char completions[MAXFILENUM][MAXNAMELEN];
@@ -511,10 +509,11 @@ void dealTab() {
 	}
 	tabComplete();
 }
-/**
- * tab auto completion end
-*/
+/****************************************************
+ * tab completion end
+*****************************************************/
 
+#define isVisable(c) (32 <= c && c <= 126)
 void readline(char *buf, u_int n) {
 	int r;
 	beforeLen = 0;
@@ -554,7 +553,7 @@ void readline(char *buf, u_int n) {
 			backOrDelete(inc);
 		} else if (inc == '\t') {
 			dealTab();
-		} else {
+		} else if (isVisable(inc)){
 			beforeCur[beforeLen++] = inc;
 		}
 		updateCons(0);
