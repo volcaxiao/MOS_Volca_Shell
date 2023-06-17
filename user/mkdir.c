@@ -4,7 +4,7 @@
 Create the DIRECTORY(ies), if they do not already exist. \n\
 \n\
 Mandatory arguments to long options are mandatory for short options too. \n\
-  -q, --quiet       no error if existing \n\
+  -q, --quiet       no error send if existing \n\
   -v, --verbose     print a message for each created directory \n\
       --help        display this help and exit \n"
 

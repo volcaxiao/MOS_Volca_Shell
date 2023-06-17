@@ -1,6 +1,19 @@
 #include <lib.h>
-#define _OP_ERR_ "err"
-#define _HELP_ "help"
+#define _OP_ERR_ "declare: missing operand \n\
+Try 'declare --help' for more information. \n"
+
+#define _HELP_                                                                                     \
+	"Usage: declare [-xr] [NAME [=VALUE]] \n\
+Set environment variables or print all environment variables. \n\
+By default, Print all environment variables \n\
+If there are other parameters, as follow. \n\
+\n\
+Mandatory arguments to long options are mandatory for short options too. \n\
+  -x            Set global environment variables \n\
+  -r            Environment variables are set to be readable only \n\
+  -q, --quiet   no error send if error \n\
+  -v, --verbose print a message for each create \n\
+     --help     display this help and exit \n"
 
 int flag[256];
 
@@ -19,6 +32,8 @@ int main(int argc, char **argv) {
             usage();
         case 'x':
         case 'r':
+        case 'q':
+        case 'v':
             flag[(u_char)ARGC()]++;
             break;
         }
@@ -52,7 +67,20 @@ int main(int argc, char **argv) {
             }
         }
         // printf("get var %s\n", value);
-        syscall_declare_var(argv[0], value, perm, isGlobal);
+        int r = syscall_declare_var(argv[0], value, perm, isGlobal);
+        if (r < 0) {
+            if (!flag['q']) {
+                if (r == -1) {
+                    debugf("The var write error\n");
+                } else if (r == -2) {
+                    debugf("The var is readOnly!\n");
+                }
+            }
+        } else {
+            if (flag['v']) {
+                debugf("write successful!\n");
+            }
+        }
     }
     return 0;
 }

@@ -1,6 +1,15 @@
 #include <lib.h>
-#define _OP_ERR_ "error"
-#define _HELP_ ""
+#define _OP_ERR_ "unset: missing operand \n\
+Try 'unset --help' for more information. \n"
+
+#define _HELP_                                                                                     \
+	"Usage: declare [-xr] [NAME [=VALUE]] \n\
+Unset environment variables. \n\
+\n\
+Mandatory arguments to long options are mandatory for short options too. \n\
+  -q, --quiet   no error send if error \n\
+  -v, --verbose print a message for each unset \n\
+     --help     display this help and exit \n"
 
 int flag[256];
 
@@ -17,7 +26,11 @@ int main(int argc, char **argv) {
     ARGBEGIN {
         default:
             usage();
-        }
+        case 'q':
+        case 'v':
+            flag[(u_char)ARGC()]++;
+            break;
+    }
 	ARGEND
     if (argc != 1) {
         debugf(_OP_ERR_);
@@ -25,10 +38,12 @@ int main(int argc, char **argv) {
     }
     int r = syscall_unset_var(argv[0]);
     if (r == 0) {
-
-    } else if (r == -1) {
+        if (flag['v']) {
+            debugf("unset successful!\n");
+        }
+    } else if (r == -1 && !flag['q']) {
         debugf("The var is no exist!\n");
-    } else if (r == -2) {
+    } else if (r == -2 && !flag['q']) {
         debugf("The var is readOnly!\n");
     }
     return 0;

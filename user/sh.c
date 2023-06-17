@@ -576,6 +576,8 @@ void readline(char *buf, u_int n) {
 			dealTab();
 		} else if (isVisable(inc)){
 			beforeCur[beforeLen++] = inc;
+		} else if(0 <= inc <= 31) {
+			printf("^%c", inc + 0x40);
 		}
 		updateCons(0);
 	}
