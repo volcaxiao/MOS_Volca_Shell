@@ -24,6 +24,11 @@ enum {
 	SYS_read_dev,
 	SYS_get_env_path,
 	SYS_change_dir,
+	SYS_alloc_shell_id,
+	SYS_declare_var,
+	SYS_unset_var,
+	SYS_get_var,
+	SYS_get_all_var,
 	MAX_SYSNO,
 };
 

@@ -2,7 +2,7 @@
 #include <lib.h>
 
 #define WHITESPACE " \t\r\n"
-#define SYMBOLS "<|>&;()"
+#define SYMBOLS "<|>&;()$"
 
 /* Overview:
  *   Parse the next token from the string at s.
@@ -40,7 +40,9 @@ int _gettoken(char *s, char **p1, char **p2) {
 			s++;
 		}
 		*s = 0;
+		s++;
 		*p2 = s;
+		
 		return 'w';
 	}
 
@@ -76,15 +78,31 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
+
 int parsecmd(char **argv, int *rightpipe) {
 	int argc = 0;
 	while (1) {
 		char *t;
-		int fd, r;
+		int fd;
 		int c = gettoken(0, &t);
 		switch (c) {
 		case 0:
 			return argc;
+		case '$':
+			if (gettoken(0, &t) != 'w') {
+				debugf("syntax error: $ not followed by word\n");
+				exit();
+			}
+			char varBuf[MAX_CMD_LEN];
+			int r = syscall_get_var(t, varBuf);
+			
+			if (r < 0) {
+				debugf("The var you need is not exist\n");
+				exit();
+			}
+			
+			argv[argc++] = varBuf;
+			break;
 		case 'w':
 			if (argc >= MAXARGS) {
 				debugf("too many arguments\n");
@@ -340,11 +358,11 @@ int readDir() {
 					return DEL;
 				}
 			default:
-				debugf("read error: %d\n", r);
+				debugf("\n\033[31;1mERROR\033[0m:read error code: %d\n", r);
 				return -1;
 		}
 	} else {
-		debugf("read error: %d\n", r);
+		debugf("\n\033[31;1mERROR\033[0m:read error code: %d\n", r);
 		return -1;
 	}
 }
@@ -523,9 +541,9 @@ void readline(char *buf, u_int n) {
 		int dir = 0;
 		if ((r = read(0, &inc, 1)) != 1) {
 			if (r < 0) {
-				debugf("read error: %d\n", r);
+				debugf("\n\033[31;1mERROR\033[0m:read error code: %d\n", r);
 			}
-			exit();
+			break;
 		}
 
 		if (inc != '\t') {
@@ -534,6 +552,9 @@ void readline(char *buf, u_int n) {
 
 		if (inc == 27) {
 			dir = readDir();
+			if (dir < 0) {
+				break;
+			}
 			if (dir == DEL) {
 				backOrDelete(dir);
 			} else if (dir < 0) {
@@ -558,7 +579,10 @@ void readline(char *buf, u_int n) {
 		}
 		updateCons(0);
 	}
-	debugf("line too long\n");
+	if (inputLen == n) {
+		debugf("\n\033[31;1mERROR\033[0m:line too long\n");
+	}
+	printf("\nPlase input Enter to continue\n");
 	while ((r = read(0, buf, 1)) == 1 && buf[0] != '\r' && buf[0] != '\n') {
 		;
 	}
@@ -617,6 +641,7 @@ int main(int argc, char **argv) {
 	int echocmds = 0;
 	initBS();
 	setInputBack(1);
+	syscall_alloc_shell_id();
 	debugf(_MOS_LOGO_);
 	debugf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
 	debugf("::                                                         ::\n");

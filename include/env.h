@@ -15,6 +15,19 @@
 #define ENV_RUNNABLE 1
 #define ENV_NOT_RUNNABLE 2
 
+
+// env var
+#define VARNEMELEN 128
+#define VARVALUELEN 1024
+#define VAR_RDONLY 1
+#define VAR_RW 0
+struct Var {
+	char name[VARNEMELEN];
+	char value[VARVALUELEN];
+	int shellId;
+	int perm;
+};
+
 struct Env {
 	struct Trapframe env_tf;  // Saved registers
 	LIST_ENTRY(Env) env_link; // Free list
@@ -40,6 +53,7 @@ struct Env {
 
 	// Lab 6-c
 	char env_path[1024];
+	int env_shellId;
 };
 
 LIST_HEAD(Env_list, Env);

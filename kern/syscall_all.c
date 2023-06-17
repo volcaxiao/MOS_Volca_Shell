@@ -255,7 +255,7 @@ int sys_exofork(void) {
 	e->env_status = ENV_NOT_RUNNABLE;
 	strcpy(e->env_path, curenv->env_path);
 	e->env_pri = curenv->env_pri;
-
+	e->env_shellId = curenv->env_shellId;
 	return e->env_id;
 }
 
@@ -542,6 +542,103 @@ int sys_change_dir(char* env_path, int changeParent) {
 	return 0;
 }
 
+#define MAXVARNUM 1024
+int nowShellId = 1;
+struct Var vars[MAXVARNUM];
+
+int isAllow(int index) {
+	return vars[index].shellId == 0 || vars[index].shellId == curenv->env_shellId;
+}
+
+/**
+ * 找到了返回index
+ * 没找到返回-1；
+*/
+int checkVar(char *varName, int needfill) {
+	int i = 0;
+	int empty = -1;
+	// printk("check %s\n", varName);
+	for (i = 0; i < MAXVARNUM; i++) {
+		if (vars[i].name[0] == 0) {
+			if (needfill && empty == -1) {
+				empty = i;
+			}
+			continue;
+		}
+		if (strcmp(vars[i].name, varName) == 0 && isAllow(i)) {
+			
+			return i;
+		}
+	}
+	return empty;
+}
+int sys_alloc_shell_id() {
+	curenv->env_shellId = nowShellId++;
+	return 0;
+}
+
+/**
+ * 写入错误返回-1
+ * var只读返回-2
+*/
+int sys_declare_var(char *varName, char *value, int perm, int isGlobal) {
+	int r = checkVar(varName, 1);
+	if (r < 0) {
+		return -1;
+	} else {
+		if (vars[r].perm & VAR_RDONLY) {
+			return -2;
+		}
+		strcpy(vars[r].name, varName);
+		strcpy(vars[r].value, value);
+		vars[r].perm = perm;
+		if (isGlobal) {
+			vars[r].shellId = 0;
+		} else {
+			vars[r].shellId = curenv->env_shellId;
+		}
+	}
+	return 0;
+}
+/**
+ * 没有找到返回-1
+ * var只读返回-2
+*/
+int sys_unset_var(char *varName) {
+	int r;
+	if ((r = checkVar(varName, 0)) < 0) {
+		return -1;
+	}
+	if (vars[r].perm & VAR_RDONLY) {
+		return -2;
+	}
+	vars[r].name[0] = 0;
+	return 0;
+}
+int sys_get_var(char *varName, char *valueBuf) {
+	int r;
+	if ((r = checkVar(varName, 0)) < 0) {
+		return -1;
+	}
+	strcpy(valueBuf, vars[r].value);
+	return 0;
+}
+int sys_get_all_var(struct Var *buf) {
+	int i;
+	int cnt = 0;
+	for (i = 0; i < MAXVARNUM; i++) {
+		if (vars[i].name[0] == 0) {
+			continue;
+		}
+		if (isAllow(i)) {
+			strcpy(buf[cnt].name, vars[i].name);
+			strcpy(buf[cnt].value, vars[i].value);
+			cnt++;
+		}
+	}
+	return cnt;
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -563,6 +660,11 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_read_dev] = sys_read_dev,
 	[SYS_get_env_path] = sys_get_env_path,
 	[SYS_change_dir] = sys_change_dir,
+	[SYS_alloc_shell_id] = sys_alloc_shell_id,
+	[SYS_declare_var] = sys_declare_var,
+	[SYS_unset_var] = sys_unset_var,
+	[SYS_get_var] = sys_get_var,
+	[SYS_get_all_var] = sys_get_all_var,
 };
 
 /* Overview:

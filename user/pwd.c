@@ -18,4 +18,5 @@ int main(int argc, char **argv) {
 	} else {
 		debugf(_OP_ERR_);
 	}
+	return 0;
 }

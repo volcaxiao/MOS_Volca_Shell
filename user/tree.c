@@ -49,7 +49,6 @@ int print_tree(int dep, const char *path, const char *ident) {
     if (dep > maxLevel)  {
         return -1;
     }
-	int r;
 	int fd = open(path, O_RDONLY);
 	if (fd < 0) {
 		debugf(_OP_ERR_);

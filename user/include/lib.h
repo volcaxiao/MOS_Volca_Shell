@@ -70,6 +70,11 @@ int syscall_write_dev(void *va, u_int pa, u_int len);
 int syscall_read_dev(void *va, u_int pa, u_int len);
 int syscall_get_env_path(int envid, char* env_path);
 int syscall_change_dir(char* env_path, int changeFather);
+int syscall_alloc_shell_id();
+int syscall_declare_var(char *varName, char *value, int perm, int isGlobal);
+int syscall_unset_var(char *varName);
+int syscall_get_var(char *varName, char *valueBuf);
+int syscall_get_all_var(struct Var *buf);
 
 // ipc.c
 void ipc_send(u_int whom, u_int val, const void *srcva, u_int perm);

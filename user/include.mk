@@ -41,6 +41,8 @@ ifeq ($(call lab-ge,6), true)
 			cd.b \
 			pwd.b \
 			history.b \
+			declare.b \
+			unset.b \
 			testpipe.b \
 			testpiperace.b \
 			testptelibrary.b \

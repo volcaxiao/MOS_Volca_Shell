@@ -73,7 +73,6 @@ char *strcpy(char *dst, const char *src) {
 
 	while ((*dst++ = *src++) != 0) {
 	}
-	*dst = 0;
 	return ret;
 }
 

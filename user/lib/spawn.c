@@ -106,11 +106,13 @@ int spawn(char *prog, char **argv) {
 	// Return the error if 'open' fails.
 	int fd;
 	// debugf("open %s\n", prog);
-	
 	if ((fd = open(prog, O_RDONLY)) < 0) {
+		/*没有任何意义的占位pad，但是有些时候能起到一定的作用*/
+		char pad[1024];
+		pad[0] = (*(char*)pad);
+
 		int bfd, len;
-		char bprog[MAXPATHLEN];
-		// printf("%d\n", strlen(bprog));
+		char bprog[1024];
 		strcpy(bprog, prog);
 		len = strlen(bprog);
 		bprog[len] = '.';
@@ -122,7 +124,9 @@ int spawn(char *prog, char **argv) {
 		} else {
 			return fd;
 		}
+		
 	}
+	
 	// printf("open %s successfully\n", prog);
 	
 	// Step 2: Read the ELF header (of type 'Elf32_Ehdr') from the file into 'elfbuf' using

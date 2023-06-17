@@ -82,3 +82,19 @@ int syscall_get_env_path(int envid, char* envpath) {
 int syscall_change_dir(char* envpath, int changeFather) {
 	return msyscall(SYS_change_dir, envpath, changeFather);
 }
+
+int syscall_alloc_shell_id() {
+	return msyscall(SYS_alloc_shell_id);
+}
+int syscall_declare_var(char *varName, char *value, int perm, int isGlobal) {
+	return msyscall(SYS_declare_var, varName, value, perm, isGlobal);
+}
+int syscall_unset_var(char *varName) {
+	return msyscall(SYS_unset_var, varName);
+}
+int syscall_get_var(char *varName, char *valueBuf) {
+	return msyscall(SYS_get_var, varName, valueBuf);
+}
+int syscall_get_all_var(struct Var *buf) {
+	return msyscall(SYS_get_all_var, buf);
+}

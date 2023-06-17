@@ -264,6 +264,7 @@ int env_alloc(struct Env **new, u_int parent_id) {
 	e->env_path[0] = '/';
 	/* Exercise 3.4: Your code here. (3/4) */
 	e->env_id = mkenvid(e);
+	e->env_shellId = 0;
 	r = asid_alloc(&e->env_asid);
 	if (r != 0) {
 		return r;
